@@ -20,7 +20,7 @@
 * You should have received a copy of the GNU General Public License    *
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.*
 ************************************************************************
-      
+    
 ************************************************************************
 *     This function computes the components of the dynamic stiffness   * 
 *     matrix for a straight planar beam in a local basis. (XY) is the  *
@@ -42,6 +42,7 @@
 *          L : length of the beam                                      *      
 *          RHO : mass density                                          *
 *          E : complex Young's modulus including structural damping    *
+*          TE : Bending theory                                         *
 *                                                                      *
 *     Output Args :                                                    *
 *            KW : Computed dynamic stiffness matrix                    *
@@ -49,12 +50,12 @@
 *     Return value :                                                   *
 *            unused logical error flag                                 *
 ************************************************************************      
-      FUNCTION PLANARBEAM(W,S,IZ,L,RHO,E,KW)
+      FUNCTION PLANARBEAM(W,S,IZ,L,RHO,E,TE,KW)
       IMPLICIT NONE
       LOGICAL PLANARBEAM
 
 *     Traction and XY-Bending Dynamic Stiffness Functions              *
-      LOGICAL TRACTION, XYBENDING
+      LOGICAL TRACTION, XYBENDING,XYRAYLEIGHBENDING
       
 *     Circular frequency                                               *
       DOUBLE PRECISION W
@@ -66,6 +67,9 @@
       DOUBLE PRECISION RHO
       COMPLEX*16 E
 
+*     Bending theory                                                   *
+      INTEGER TE
+      
 *     Dynamic Stiffness Matrix                                         *
       COMPLEX*16 KW(6,6)
 
@@ -88,7 +92,11 @@
             
 *     Computation of traction and xy-bending dynamic stiffness matrices* 
       RET=TRACTION(W,S,L,RHO,E,KT)
-      RET=XYBENDING(W,S,IZ,L,RHO,E,KB)
+      IF (TE.EQ.1) THEN
+          RET=XYBENDING(W,S,IZ,L,RHO,E,KB)
+      ELSE
+          RET=XYRAYLEIGHBENDING(W,S,IZ,L,RHO,E,KB)
+      ENDIF
       
 *     Traction Components                                              * 
       DO I=1,2
