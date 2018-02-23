@@ -27,9 +27,8 @@
 *     This program computes the harmonic response of a 2D beam         *
 *     structure described in a data file (see ReadDataFile.for)        *
 *                                                                      *  
-*     A harmonic unit force is applied on the first DOF of the         *
-*     structure and the response is computed in the direction of the   *
-*     first DOF every 1 Hz in [1,1000 Hz] frequency range.             *
+*     A harmonic unit force is applied on a chosen DOF and the harmonic*
+*     response is computed in the direction of another DOF             *
 *                                                                      *      
 *     The solutions are obtained thanks to a Lapack's procedure that   * 
 *     solves the symmetric linear algebraic system (ZSYSV)             *    
@@ -38,7 +37,7 @@
       PROGRAM DYNAMICSTIFFNESS
       IMPLICIT NONE
 
-*     Declarations of static arrays that describe the structure        *                                            *
+*     Declarations of static arrays that describe the structure        *
       INTEGER NMAX,EMAX,SMAX,MMAX
       PARAMETER (NMAX=100,EMAX=100,SMAX=100,MMAX=100)
       DOUBLE PRECISION NODES(NMAX,2),MATES(MMAX,3),SECTS(SMAX,2)
@@ -55,6 +54,10 @@
 *     W and F are circular frequency and frequency respectively        * 
 *     [F1,F2] is the frequency range, FSTEP the frequency step         *      
       DOUBLE PRECISION W,F,PI,F1,F2,FSTEP
+
+*     FDOF is the chosen DOF subjected to an unit harmonic force and   *
+*     DDOF is the chosen DOF processed response                        *
+      DOUBLE PRECISION FDOF,DDOF
       
 *     KWST is the dynamic stiffness matrix of the structure for a given*
 *     circular frequency and B if the force vector                     *                                 
@@ -108,6 +111,10 @@
       READ(*,*) F1,F2
       WRITE(*,*) 'Enter the number of processed frequencies'
       READ(*,*) NF
+      WRITE(*,*) 'Enter the DOF subjected to an harmonic unit force'
+      READ(*,*) FDOF
+      WRITE(*,*) 'Enter the processed harmonic response DOF'
+      READ(*,*) DDOF
       FSTEP=(F2-F1)/(NF-1)
 *     The main frequency loop                                          *
       DO F=F1,F2,FSTEP
@@ -126,14 +133,14 @@
           DO I=1,3*NN
               B(I)=DCMPLX(0.0,0.0)    
           ENDDO
-          B(1)=DCMPLX(1.0,0.0)
+          B(FDOF)=DCMPLX(1.0,0.0)
           
 *         Solving the linear algebraic system                         *          
           CALL ZSYSV('U',3*NN,1,KWST,3*NMAX,IPIV,B,3*NMAX,WORK,3*NMAX,
      1               INFO)
 
 *         The chosen displacement is written on the result file       *          
-          WRITE(10,*) F,DREAL(B(1))
+          WRITE(10,*) F,DREAL(B(DDOF))
       ENDDO
       CLOSE(10)
       WRITE(*,*) 'Result file is '//FILENAME(1:INDEX(FILENAME,'.'))
