@@ -71,6 +71,11 @@
       
       
 *     The name of the data file is required                            *
+      WRITE(*,*) 'DynamicStiffness 1.0 Copyright (C) 2018 JB. CASIMIR'
+      WRITE(*,*) "This program comes with ABSOLUTELY NO WARRANTY"
+      WRITE(*,*) "This is free software, and you are welcome to redistri
+     1bute it under certain conditions"
+      PRINT*
       WRITE(*,*) 'Data File ? (******.dat)'
       READ(*,*) FILENAME
       
@@ -98,7 +103,7 @@
       OPEN(10,FILE=FILENAME(1:INDEX(FILENAME,'.'))//'res')
       
       PI=ACOS(-1.0)
-
+      PRINT*
       WRITE(*,*) 'Enter the frequency range : F1,F2'
       READ(*,*) F1,F2
       WRITE(*,*) 'Enter the number of processed frequencies'
