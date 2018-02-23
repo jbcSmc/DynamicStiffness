@@ -4,7 +4,7 @@
 * Copyright (C) 2018  Jean-Baptiste CASIMIR,                           * 
 * Quartz Laboratory - Supmeca                                          *
 * 3 rue Ferand Hainaut                                                 *
-* 93407 SAINT-OUEN - FRANCE                                            *
+* 93407 SAINT-OUEN - FRANCE                                            *      
 * jean-baptiste.casimir@supmeca.fr                                     *
 *                                                                      *
 * This program is free software: you can redistribute it and/or modify *
@@ -22,8 +22,8 @@
 ************************************************************************
       
 ************************************************************************
-*     This function computes the XY-bending components of the dynamic  *
-*     stiffness matrix for a straight beam in a local basis.           *
+*     This function computes the Bernoulli XY-bending components of the*
+*     dynamic stiffness matrix for a straight beam in a local basis.   *
 *                                                                      *
 *     This matrix relates traction displacement vector D and           *
 *     external force vector F at the tips of the AB beam for a given   *
