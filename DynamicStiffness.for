@@ -57,7 +57,7 @@
 
 *     FDOF is the chosen DOF subjected to an unit harmonic force and   *
 *     DDOF is the chosen DOF processed response                        *
-      DOUBLE PRECISION FDOF,DDOF
+      INTEGER FDOF,DDOF
       
 *     KWST is the dynamic stiffness matrix of the structure for a given*
 *     circular frequency and B if the force vector                     *                                 
