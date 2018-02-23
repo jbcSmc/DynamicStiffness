@@ -44,15 +44,17 @@
       DOUBLE PRECISION NODES(NMAX,2),MATES(MMAX,3),SECTS(SMAX,2)
       INTEGER ELEMS(EMAX,5)
 
-*     CAT is the category of problem (Yet only 2DFRAME)      
+*     CAT is the category of problem (Yet only 2DFRAME)                *
       CHARACTER(7) CAT
       
-*     NN,NE,NM,NS are the number of nodes, the number of elements, the *
-*     number of materials and the number of sections respectively      *                         
-      INTEGER NN,NE,NM,NS
+*     NN,NE,NM,NS,NF are the number of nodes, the number of elements,  *
+*     the number of materials, the number of sections and the number of*
+*     processed frequencies respectively                               *                         
+      INTEGER NN,NE,NM,NS,NF
       
-*     W and F are circular frequency and frequency respectively        *      
-      DOUBLE PRECISION W,F,PI
+*     W and F are circular frequency and frequency respectively        * 
+*     [F1,F2] is the frequency range, FSTEP the frequency step         *      
+      DOUBLE PRECISION W,F,PI,F1,F2,FSTEP
       
 *     KWST is the dynamic stiffness matrix of the structure for a given*
 *     circular frequency and B if the force vector                     *                                 
@@ -66,6 +68,7 @@
       CHARACTER*80 FILENAME
       
       INTEGER I,J
+      
       
 *     The name of the data file is required                            *
       WRITE(*,*) 'Data File ? (******.dat)'
@@ -96,8 +99,13 @@
       
       PI=ACOS(-1.0)
 
+      WRITE(*,*) 'Enter the frequency range : F1,F2'
+      READ(*,*) F1,F2
+      WRITE(*,*) 'Enter the number of processed frequencies'
+      READ(*,*) NF
+      FSTEP=(F2-F1)/(NF-1)
 *     The main frequency loop                                          *
-      DO F=1,10000
+      DO F=F1,F2,FSTEP
           W=2*PI*F
           DO I=1,3*NN
               DO J=1,3*NN
