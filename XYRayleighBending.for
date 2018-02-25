@@ -91,24 +91,6 @@
       FACT=2*K1*K2*(1-CO*COH)+(K2**2-K1**2)*SI*SIH
       FACT=E*IZ/FACT
       
-c      KW(1,1)=FACT*K1*K2*(A+B)*(K2*CO*SIH+K1*SI*COH)
-c      KW(1,2)=-FACT*K1*K2*(A-B)*(1-CO*COH)+FACT*(A*K1**2+B*K2**2)*SI*SIH
-c      KW(1,3)=-FACT*K1*K2*(A+B)*(K1*SI+K2*SIH)
-c      KW(1,4)=FACT*K1*K2*(A+B)*(COH-CO)
-c      KW(2,1)=KW(1,2)
-c      KW(2,2)=FACT*E*IZ*(K1**2+K2**2)*(K2*SI*COH-K1*CO*SIH)
-c      KW(2,3)=FACT*E*IZ*K1*K2*(K1**2+K2**2)*(CO-COH)
-c      KW(2,4)=FACT*E*IZ*K1*K2*(K2*SIH-K1*SI)
-c      KW(2,4)=KW(2,4)+FACT*E*IZ*(K1**3*SIH-K2**3*SI)
-c      KW(3,1)=KW(1,3)
-c      KW(3,2)=KW(2,3)
-c      KW(3,3)=KW(1,1)
-c      KW(3,4)=-KW(1,2)
-c      KW(4,1)=KW(1,4)
-c      KW(4,2)=KW(2,4)
-c      KW(4,3)=KW(3,4)
-c      KW(4,4)=KW(2,2)
-
       KW(1,1)=K1*K2*(K1*K1+K2*K2)*(K2*CO*SIH+K1*SI*COH)*FACT
       KW(1,2)=(2*K1*K1*K2*K2*SI*SIH-K1*K2*(K2*K2-K1*K1)*(1-CO*COH))*FACT
       KW(1,3)=-K1*K2*(K1*K1+K2*K2)*(K1*SI+K2*SIH)*FACT
