@@ -73,16 +73,13 @@
       COMPLEX*16 CDCOSH, CDSINH
 
 *     Local variables                                                  *      
-      COMPLEX*16 K,K1,K2,A,B,CO,SI,COH,SIH,FACT
+      COMPLEX*16 K,K1,K2,CO,SI,COH,SIH,FACT
 
 * K1, K2 : wave numbers                                                *
       K=W*SQRT((RHO*W/E)**2+4*RHO*S/E/IZ)/2
       K1=CDSQRT(K+RHO*W*W/2/E)
       K2=CDSQRT(K-RHO*W*W/2/E)
-      
-      A=E*IZ*K1**2-RHO*IZ*W**2
-      B=E*IZ*K2**2+RHO*IZ*W**2
-      
+    
       CO=CDCOS(K1*L)
       SI=CDSIN(K1*L)
       COH=CDCOSH(K2*L)
