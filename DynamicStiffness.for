@@ -140,7 +140,7 @@
      1               INFO)
 
 *         The chosen displacement is written on the result file       *          
-          WRITE(10,*) F,DREAL(B(DDOF))
+          WRITE(10,*) F,CDABS(B(DDOF))
       ENDDO
       CLOSE(10)
       WRITE(*,*) 'Result file is '//FILENAME(1:INDEX(FILENAME,'.'))
