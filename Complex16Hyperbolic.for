@@ -1,7 +1,7 @@
 ************************************************************************
 * This file is part of DynamicSiffness, a Fortran library that         * 
 * implements the Dynamic Stiffness Method                              *
-* Copyright (C) 2018  Jean-Baptiste CASIMIR,                           *
+* Copyright (C) 2017  Jean-Baptiste CASIMIR,                           *
 * Quartz Laboratory - Supmeca                                          *
 * 3 rue Ferand Hainaut                                                 *
 * 93407 SAINT-OUEN - FRANCE                                            *
