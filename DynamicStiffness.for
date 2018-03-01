@@ -1,7 +1,7 @@
 ************************************************************************
 * This file is part of DynamicSiffness, a Fortran library that         * 
 * implements the Dynamic Stiffness Method                              *
-* Copyright (C) 2017  Jean-Baptiste CASIMIR,                           *
+* Copyright (C) 2018  Jean-Baptiste CASIMIR,                           *
 * Quartz Laboratory - Supmeca                                          *
 * 3 rue Ferand Hainaut                                                 *
 * 93407 SAINT-OUEN - FRANCE                                            *      
@@ -49,7 +49,7 @@
 *     NN,NE,NM,NS,NF are the number of nodes, the number of elements,  *
 *     the number of materials, the number of sections and the number of*
 *     processed frequencies respectively                               *                         
-      INTEGER NN,NE,NM,NS,NF
+      INTEGER N,NN,NE,NM,NS,NF
       
 *     W and F are circular frequency and frequency respectively        * 
 *     [F1,F2] is the frequency range, FSTEP the frequency step         *      
@@ -94,10 +94,10 @@
       WRITE(*,*) 'Number of materials : ',NM
       WRITE(*,*) 'Number of sections : ',NS
       PRINT*
-      WRITE(*,'(3A3,6A9,A7)') 'NB','N1','N2','DENS','E','TgD','S','IZ',
+      WRITE(*,'(3A3,5A9,A7)') 'NB','N1','N2','DENS','E','TgD','S','IZ',
      1                        'THEORY'
       DO I=1,NE
-          WRITE(*,'(3I3,6D9.2,I7)') I,ELEMS(I,1),ELEMS(I,2),
+          WRITE(*,'(3I3,5D9.2,I7)') I,ELEMS(I,1),ELEMS(I,2),
      1    MATES(ELEMS(I,3),1),MATES(ELEMS(I,3),2),MATES(ELEMS(I,3),3),
      2    SECTS(ELEMS(I,4),1),SECTS(ELEMS(I,4),2),ELEMS(I,5)
       ENDDO
@@ -117,7 +117,8 @@
       READ(*,*) DDOF
       FSTEP=(F2-F1)/(NF-1)
 *     The main frequency loop                                          *
-      DO F=F1,F2,FSTEP
+      F=F1
+      DO N=1,NF
           W=2*PI*F
           DO I=1,3*NN
               DO J=1,3*NN
@@ -141,6 +142,7 @@
 
 *         The chosen displacement is written on the result file       *          
           WRITE(10,*) F,CDABS(B(DDOF))
+          F=F+FSTEP
       ENDDO
       CLOSE(10)
       WRITE(*,*) 'Result file is '//FILENAME(1:INDEX(FILENAME,'.'))
