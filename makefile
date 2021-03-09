@@ -1,50 +1,27 @@
-all:release/dsmGtk
+all:release/dsmGtk release/dsm
 GFC=gfortran
 LDFLAGS=-L./lib -llapack -lm
 GTK_VERSION=`pkg-config --cflags --libs gtk+-2.0 plplotd-f95`
 
-SRC=ReadDataFile.for\
+_SRC=ReadDataFile.for\
     DynamicStiffness2D.for\
     GlobalStraightPlanarBeam.for\
     StraightPlanarBeam.for\
-    PlanarAssembly.for\
     Traction.for\
+    PlanarAssembly.for\
     XYBending.for\
     XYRayleighBending.for\
     Complex16Hyperbolic.for
-_OBJ=$(subst .for,.o,$(SRC))
-OBJ=$(patsubst %,release/%,$(_OBJ))
+SRC=$(patsubst %,srcGtk/%,$(_SRC))    
+_OBJ=$(subst .for,.o,$(_SRC))
+OBJ=$(patsubst %,lib/%,$(_OBJ))
 
-_GTK_HL_OBJ=gtk-hl-misc.o\
-            gtk-hl-accelerator.o\
-            gtk-hl-button.o\
-            gtk-hl-combobox.o\
-            gtk-hl-container.o\
-            gtk-hl-entry.o\
-            gtk-hl-menu.o\
-            gtk-hl-progress.o\
-            gtk-hl-spin-slider.o\
-            gtk-hl-tree.o\
-            gtk-hl-chooser.o\
-            gtk-hl-dialog.o\
-            gtk-hl-infobar.o\
-            gtk-hl-assistant.o\
-            gdk-pixbuf-hl.o\
-	        gtk.o\
-	        gtk-sup.o\
-            gtk-hl.o\
-            unixonly-auto.o\
-            gtk-draw-hl.o
-GTK_HL_OBJ=$(patsubst %,lib/%,$(_GTK_HL_OBJ))           
-
-_GTK_SRC=unixonly.f90\
+_GTK_SRC=unixonly-auto.f90\
          gdk-auto.f90\
          glib-auto.f90\
          gtk.f90\
-         atk-auto.f90\
          cairo-auto.f90\
          gdk-pixbuf-auto.f90\
-         pango-auto.f90\
          gtk-sup.f90\
          gtk-hl-misc.f90\
          gtk-hl-accelerator.f90\
@@ -61,27 +38,35 @@ _GTK_SRC=unixonly.f90\
          gtk-hl-chooser.f90\
          gtk-hl-dialog.f90\
          gtk-hl.f90\
-         gdkevents-auto2.f90\
          gtk-draw-hl.f90\
          gdk-pixbuf-hl.f90
 
 GTK_SRC=$(patsubst %,srcGtk/%,$(_GTK_SRC))
+_GTK_HL_OBJ=$(subst .f90,.o,$(_GTK_SRC))
+GTK_HL_OBJ=$(patsubst %,lib/%,$(_GTK_HL_OBJ))           
 
-release/dsm:$(OBJ) release/dsm.o
+%.o:%.mod
+
+release/dsm:$(OBJ) lib/dsm.o
 	$(GFC) -o release/dsm $^ $(LDFLAGS)
 	 
-release/dsmGtk:$(OBJ) $(GTK_HL_OBJ) release/dsmGtk.o
+release/dsmGtk:$(OBJ) $(GTK_HL_OBJ) lib/dsmGtk.o
 	$(GFC) -o release/dsmGtk $^ $(LDFLAGS) $(GTK_VERSION) 
 
-release/dsm.o:srcDsm/dsm.for
-	$(GFC) -c srcDsm/dsm.for -o release/dsm.o
+lib/dsm.o:srcDsm/dsm.for
+	$(GFC) -c srcDsm/dsm.for -o lib/dsm.o
 	
-release/dsmGtk.o:srcDsm/dsmGtk.f90
-	$(GFC) -c srcDsm/dsmGtk.f90 -o release/dsmGtk.o $(GTK_VERSION) -I srcGtk
+lib/dsmGtk.o:srcDsm/dsmGtk.f90
+	$(GFC) -c srcDsm/dsmGtk.f90 -o lib/dsmGtk.o $(GTK_VERSION)
 	
-release/%.o:srcDsm/%.for
-	$(GFC) -c -o $@ $< $(GTK_VERSION)
-	
-lib/%.o:$(GTK_SRC) lib/%.mod
+lib/%.o:srcDsm/%.for
 	$(GFC) -c -o $@ $< $(GTK_VERSION)
 
+lib/%.o:srcGtk/%.f90
+	$(GFC) -c -o $@ $< $(GTK_VERSION)
+
+clean:
+	rm release/dsm
+	rm release/dsmGtk
+	rm lib/*
+	rm *.mod
