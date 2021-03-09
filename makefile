@@ -1,4 +1,4 @@
-all:release/dsmGtk
+all:release/dsmGtk release/dsm
 GFC=gfortran
 LDFLAGS=-L./lib -llapack -lm
 GTK_VERSION=`pkg-config --cflags --libs gtk+-2.0 plplotd-f95`
@@ -7,8 +7,8 @@ SRC=ReadDataFile.for\
     DynamicStiffness2D.for\
     GlobalStraightPlanarBeam.for\
     StraightPlanarBeam.for\
-    PlanarAssembly.for\
     Traction.for\
+    PlanarAssembly.for\
     XYBending.for\
     XYRayleighBending.for\
     Complex16Hyperbolic.for
@@ -85,3 +85,5 @@ release/%.o:srcDsm/%.for
 lib/%.o:$(GTK_SRC) lib/%.mod
 	$(GFC) -c -o $@ $< $(GTK_VERSION)
 
+clean:
+	rm release/*
