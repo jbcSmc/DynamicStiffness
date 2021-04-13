@@ -1,7 +1,7 @@
 all:release/dsmGtk release/dsm
 GFC=gfortran
 LDFLAGS=-L./lib -llapack -lm
-GTK_VERSION=`pkg-config --cflags --libs gtk+-2.0 plplotd-f95`
+GTK_VERSION=`pkg-config --cflags --libs gtk+-2.0`
 
 _SRC=ReadDataFile.for\
     DynamicStiffness2D.for\
