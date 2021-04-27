@@ -11,8 +11,9 @@ _SRC=ReadDataFile.for\
     PlanarAssembly.for\
     XYBending.for\
     XYRayleighBending.for\
+    XYTimoshenkoBending.for\
     Complex16Hyperbolic.for
-SRC=$(patsubst %,srcGtk/%,$(_SRC))    
+SRC=$(patsubst %,srcGtk/%,$(_SRC))
 _OBJ=$(subst .for,.o,$(_SRC))
 OBJ=$(patsubst %,lib/%,$(_OBJ))
 

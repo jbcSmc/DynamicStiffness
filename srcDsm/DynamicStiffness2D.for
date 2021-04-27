@@ -66,7 +66,7 @@
 
 *     Local variables                                                  *
       INTEGER E,IE,JE,I,J,TE
-      DOUBLE PRECISION L,S,IZ,RHO,X(2),ER,ETG
+      DOUBLE PRECISION L,S,IZ,RHO,X(2),ER,ETG,NU,KY
       COMPLEX*16 YOUNG,KW(6,6)
       LOGICAL RET
 
@@ -88,6 +88,9 @@
           RHO=MATES(ELEMS(E,3),1)
           ER=MATES(ELEMS(E,3),2)
           ETG=MATES(ELEMS(E,3),3)
+*         Modification for Timoshenko's theory : 04/2021               *
+          NU=MATES(ELEMS(E,3),4)
+          KY=SECTS(ELEMS(E,4),3)
 
 *         Calculating complex Young modulus                            *
           YOUNG=DCMPLX(ER,ER*ETG)
@@ -95,7 +98,8 @@
 *         Computing the element dynamic stiffness matrix in a global   *
 *         coordinate system                                            *
           TE=ELEMS(E,5)         
-          RET=GLOBALPLANARBEAM(W,S,IZ,L,RHO,YOUNG,X,TE,KW)
+*         Update inputs for Timoshenko  :   04/2021                    *
+          RET=GLOBALPLANARBEAM(W,S,IZ,L,RHO,YOUNG,NU,KY,X,TE,KW)
 
 *         Assembling the processed matrix                              *          
           CALL PLANARASSEMBLY(KW,IE,JE,DOFMAX,KWST)
