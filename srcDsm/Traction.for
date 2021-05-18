@@ -70,7 +70,7 @@
       
       K=W*CDSQRT(RHO/E)
       
-      KW(1,2)=-E*S*K/L/CDSIN(K*L);
+      KW(1,2)=-E*S*K/CDSIN(K*L);
       KW(2,1)=KW(1,2)
       KW(1,1)=-KW(1,2)*CDCOS(K*L)
       KW(2,2)=KW(1,1)
