@@ -52,7 +52,14 @@
 *            unused logical error flag                                 *
 *                                                                      *
 *     Update in inputs for the use of Timoshenko's theory              *
-************************************************************************      
+************************************************************************
+
+************************************************************************
+*     Update for Timoshenko's theory                                   *
+* 04/2021 by Tanguy BEVANCON                                           *
+*tanguy.bevancon@supmeca.fr                                            *
+************************************************************************
+      
       FUNCTION GLOBALPLANARBEAM(W,S,IZ,L,RHO,E,NU,KY,X,TE,KW)
       IMPLICIT NONE
       LOGICAL GLOBALPLANARBEAM

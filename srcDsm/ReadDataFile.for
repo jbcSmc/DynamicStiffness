@@ -83,7 +83,14 @@
 *          NM : number of materials                                    *
 *          SECTS : Sections' table (SI,IZI,KY)                         *
 *          NS : number of sections                                     *
-************************************************************************   
+************************************************************************ 
+
+************************************************************************
+*     Update for Timoshenko's theory                                   *
+* 04/2021 by Tanguy BEVANCON                                           *
+*tanguy.bevancon@supmeca.fr                                            *
+************************************************************************
+  
       SUBROUTINE READDATAFILE(FILENAME,NMAX,EMAX,MMAX,SMAX,CAT,NODES,NN,
      1                        ELEMS,NE,MATES,NM,SECTS,NS)
       IMPLICIT NONE

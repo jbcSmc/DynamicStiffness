@@ -53,7 +53,14 @@
 *                                                                      *      
 *     Return value :                                                   *
 *            unused logical error flag                                 *
-************************************************************************      
+************************************************************************
+
+************************************************************************
+*     Update for Timoshenko's theory                                   *
+* 04/2021 by Tanguy BEVANCON                                           *
+*tanguy.bevancon@supmeca.fr                                            *
+************************************************************************
+      
       FUNCTION XYTIMOSHENKOBENDING(W,S,IZ,L,RHO,E,NU,KY,KW)
       IMPLICIT NONE
       LOGICAL XYTIMOSHENKOBENDING

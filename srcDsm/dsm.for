@@ -33,6 +33,12 @@
 *     The solutions are obtained thanks to a Lapack's procedure that   * 
 *     solves the symmetric linear algebraic system (ZSYSV)             *    
 ************************************************************************
+
+************************************************************************
+*     Update for Timoshenko's theory                                   *
+* 04/2021 by Tanguy BEVANCON                                           *
+*tanguy.bevancon@supmeca.fr                                            *
+************************************************************************
    
       PROGRAM DYNAMICSTIFFNESS
       IMPLICIT NONE

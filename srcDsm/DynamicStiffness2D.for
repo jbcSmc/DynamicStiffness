@@ -51,6 +51,12 @@
 *            KWST : The dynamic stiffness matrix of the whole structure*
 *                                                                      *      
 ************************************************************************  
+
+************************************************************************
+*     Update for Timoshenko's theory                                   *
+* 04/2021 by Tanguy BEVANCON                                           *
+*tanguy.bevancon@supmeca.fr                                            *
+************************************************************************
       
       SUBROUTINE DYNAMICSTIFFNESS2D(W,NODES,ELEMS,MATES,SECTS,NMAX,EMAX,
      1                               MMAX,SMAX,NE,DOFMAX,KWST)

@@ -50,8 +50,14 @@
 *     Return value :                                                   *
 *            unused logical error flag                                 *
 *                                                                      *
-*     Update in inputs for the use of Timoshenko's theory              *
-************************************************************************      
+************************************************************************
+
+************************************************************************
+*     Update for Timoshenko's theory                                   *
+* 04/2021 by Tanguy BEVANCON                                           *
+*tanguy.bevancon@supmeca.fr                                            *
+************************************************************************
+      
       FUNCTION PLANARBEAM(W,S,IZ,L,RHO,NU,KY,E,TE,KW)
       IMPLICIT NONE
       LOGICAL PLANARBEAM
@@ -101,6 +107,7 @@
           RET=XYBENDING(W,S,IZ,L,RHO,E,KB)
       ELSEIF (TE.EQ.2) THEN
           RET=XYRAYLEIGHBENDING(W,S,IZ,L,RHO,E,KB)
+* Add of the Timoshenko's method : 04/2021                             *
       ELSEIF (TE.EQ.3) THEN
           RET=XYTIMOSHENKOBENDING(W,S,IZ,L,RHO,E,NU,KY,KB)
       ENDIF
