@@ -33,6 +33,12 @@
 *     The solutions are obtained thanks to a Lapack's procedure that   * 
 *     solves the symmetric linear algebraic system (ZSYSV)             *    
 ************************************************************************
+
+************************************************************************
+*     Update for Timoshenko's theory                                   *
+* 04/2021 by Tanguy BEVANCON                                           *
+*tanguy.bevancon@supmeca.fr                                            *
+************************************************************************
    
       PROGRAM DYNAMICSTIFFNESS
       IMPLICIT NONE
@@ -40,7 +46,7 @@
 *     Declarations of static arrays that describe the structure        *
       INTEGER NMAX,EMAX,SMAX,MMAX
       PARAMETER (NMAX=100,EMAX=100,SMAX=100,MMAX=100)
-      DOUBLE PRECISION NODES(NMAX,2),MATES(MMAX,3),SECTS(SMAX,2)
+      DOUBLE PRECISION NODES(NMAX,2),MATES(MMAX,4),SECTS(SMAX,3)
       INTEGER ELEMS(EMAX,5)
 
 *     CAT is the category of problem (Yet only 2DFRAME)                *
@@ -96,12 +102,14 @@
       WRITE(*,*) 'Number of materials : ',NM
       WRITE(*,*) 'Number of sections : ',NS
       PRINT*
-      WRITE(*,'(3A3,5A9,A7)') 'NB','N1','N2','DENS','E','TgD','S','IZ',
-     1                        'THEORY'
+*     Display modified for the Timoshenko's theory : 04/2021           *
+      WRITE(*,'(3A3,7A9,A7)') 'NB','N1','N2','DENS','E','TgD','Nu','S',
+     1                        'IZ','kY','THEORY'
       DO I=1,NE
-          WRITE(*,'(3I3,5D9.2,I7)') I,ELEMS(I,1),ELEMS(I,2),
+          WRITE(*,'(3I3,7D9.2,I7)') I,ELEMS(I,1),ELEMS(I,2),
      1    MATES(ELEMS(I,3),1),MATES(ELEMS(I,3),2),MATES(ELEMS(I,3),3),
-     2    SECTS(ELEMS(I,4),1),SECTS(ELEMS(I,4),2),ELEMS(I,5)
+     2    MATES(ELEMS(I,3),4),SECTS(ELEMS(I,4),1),SECTS(ELEMS(I,4),2),
+     3    SECTS(ELEMS(I,4),3),ELEMS(I,5)
       ENDDO
      
       

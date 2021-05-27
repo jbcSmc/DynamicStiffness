@@ -62,8 +62,10 @@ module common_Dsm
 !  nm : The number of materials                                        !
 !  cat : Category of problem (only 2DFRAME)                            !
 !  xmin, xmax, ymin, ymax : extremal dimensions of the structure       !
+
+!Modification of structure type for Timoshenko : 04/2021			   !
    type Structure
-	  double precision nodes(nmax,2),mates(mmax,3),sects(smax,2)
+	  double precision nodes(nmax,2),mates(mmax,4),sects(smax,3)
       integer elems(emax,5)
       integer nn,ne,nm,ns
       character*7 cat
@@ -169,14 +171,14 @@ module handlers
 
 ! Supmeca logo on left pixbuf widget                                   !    
     cc = gdk_cairo_create (gtk_widget_get_window(widget))
-    image=hl_gdk_pixbuf_new_file("/home/user/DynamicStiffness/release/&
+    image=hl_gdk_pixbuf_new_file("/home/tanguyb/DynamicStiffness/release/&
    &logo-supmeca.png")
     call gdk_cairo_set_source_pixbuf(cc,image,0d0,0d0)
     call cairo_paint(cc)
 
 ! Right RGB pixbuf unused widget                                              !    
-    width = 800
-    height =200
+    width = 700
+    height =195
     pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8_c_int,width,&
    &height)    
     call c_f_pointer(gdk_pixbuf_get_pixels(pixbuf), pixel, (/0/))
@@ -190,7 +192,7 @@ module handlers
       pixel(i+3)=char(20)  ! Opacity (Alpha channel)
     end do
 ! Location on right                                                    !    
-    call gdk_cairo_set_source_pixbuf(cc,pixbuf, 220d0, 0d0)
+    call gdk_cairo_set_source_pixbuf(cc,pixbuf, 260d0, 0d0)
     call cairo_paint(cc)
     call cairo_destroy(cc)
     ret = FALSE
@@ -254,16 +256,19 @@ module handlers
     WRITE(*,*) 'Number of materials : ',val%pStruct%nm
     WRITE(*,*) 'Number of sections : ',val%pStruct%ns
     PRINT*
-    WRITE(*,'(3A3,5A9,A7)') 'NB','N1','N2','DENS','E','TgD','S','IZ',&
-   &                        'THEORY'
+! Timoshenko's parameters are added : 04/2021						   !
+    WRITE(*,'(3A3,7A9,A7)') 'NB','N1','N2','DENS','E','TgD','Nu','S',&
+   &                        'IZ','kY','THEORY'
     DO i=1,val%pStruct%NE
-       WRITE(*,'(3I3,5D9.2,I7)') i,val%pStruct%elems(i,1),&
+       WRITE(*,'(3I3,7D9.2,I7)') i,val%pStruct%elems(i,1),&
       &val%pStruct%elems(i,2),&
       &val%pStruct%mates(val%pStruct%elems(i,3),1),&
       &val%pStruct%mates(val%pStruct%elems(i,3),2),&
       &val%pStruct%mates(val%pStruct%elems(i,3),3),&
+      &val%pStruct%mates(val%pStruct%elems(i,3),4),&
       &val%pStruct%sects(val%pStruct%elems(i,4),1),&
       &val%pStruct%sects(val%pStruct%elems(i,4),2),&
+      &val%pStruct%sects(val%pStruct%elems(i,4),3),&
       &val%pStruct%elems(i,5)
     ENDDO
     

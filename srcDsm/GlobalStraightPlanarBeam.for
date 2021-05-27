@@ -50,8 +50,17 @@
 *                                                                      *      
 *     Return value :                                                   *
 *            unused logical error flag                                 *
-************************************************************************      
-      FUNCTION GLOBALPLANARBEAM(W,S,IZ,L,RHO,E,X,TE,KW)
+*                                                                      *
+*     Update in inputs for the use of Timoshenko's theory              *
+************************************************************************
+
+************************************************************************
+*     Update for Timoshenko's theory                                   *
+* 04/2021 by Tanguy BEVANCON                                           *
+*tanguy.bevancon@supmeca.fr                                            *
+************************************************************************
+      
+      FUNCTION GLOBALPLANARBEAM(W,S,IZ,L,RHO,E,NU,KY,X,TE,KW)
       IMPLICIT NONE
       LOGICAL GLOBALPLANARBEAM
 
@@ -65,7 +74,7 @@
       DOUBLE PRECISION S,IZ,L
       
 *     Material properties of the beam                                  *
-      DOUBLE PRECISION RHO
+      DOUBLE PRECISION RHO,NU
       COMPLEX*16 E
 
 *     Direction of the beam                                            *
@@ -73,6 +82,9 @@
       
 *     Bending Theory                                                   *
       INTEGER TE
+      
+*     Timoshenko's theory   :   04/2021                                *
+      DOUBLE PRECISION KY
       
 *     Global Dynamic Stiffness Matrix                                  *
       COMPLEX*16 KW(6,6)
@@ -89,8 +101,9 @@
       
       DATA P/36*0/
 
-*     Computation of the local dynamic stiffness matrix                *   
-      RET=PLANARBEAM(W,S,IZ,L,RHO,E,TE,LKW)
+*     Computation of the local dynamic stiffness matrix                *
+*     Update inputs :   04/2021                                        *   
+      RET=PLANARBEAM(W,S,IZ,L,RHO,NU,KY,E,TE,LKW)
      
 *     Computation of the rotation matrix                               *
       P(1,1)=X(1)/L

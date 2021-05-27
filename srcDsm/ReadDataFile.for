@@ -37,15 +37,15 @@
 *     ...                                                              *
 *     NE N1NE N2NE MNE SNE TNE                                         *
 *     MATERIALS NM                                                     *
-*     1 R1 E1 D1                                                       *
-*     2 R2 E2 D2                                                       *
+*     1 R1 E1 D1 NU1                                                   *
+*     2 R2 E2 D2 NU2                                                   *
 *     ...                                                              *
-*     NM RNM ENM DNM                                                   *
+*     NM RNM ENM DNM NUNM                                              *
 *     SECTIONS NS                                                      *
-*     1 S1 IZ1                                                     *
-*     2 S2 IZ2                                                     *
+*     1 S1 IZ1 KY1                                                     *
+*     2 S2 IZ2 KY2                                                     *
 *     ...                                                              *      
-*     NS SNS IZNS                                                 * 
+*     NS SNS IZNS KYNS                                                 * 
 *                                                                      *      
 *     Where :                                                          *
 *     ST : Type of structure (ONLY 2DFRAME)                            *
@@ -55,14 +55,16 @@
 *     N1I,N2I : Node 1 and Node 2 of element I                         *
 *     MI : Constitutive material of element I                          *
 *     SI : Section of element I                                        *
-*     TI : Type of element I (1 = Bernoulli, 2 = Rayleigh)             *
+*     TI : Type of element I (1 =Bernoulli, 2 =Rayleigh, 3 =Timoshenko)*
 *     NM : Number of materials                                         *
 *     RI : Mass density of material I                                  *
 *     EI : Young modulus of material I                                 *
 *     DI : Damping (loss angle) of material I                          *
+*     NU : Poisson's Ratio                                             *
 *     NS : Number of sections                                          *
 *     SI : Area o section I                                            *
 *     IZI : Quadratic moment of inertia of section I                   *
+*     KY : Timoshenko's Section Reduction                              *
 *                                                                      *
 *     Input Args :                                                     * 
 *          FILENAME : The data filename                                *
@@ -77,11 +79,18 @@
 *          NN : number of nodes                                        *
 *          ELEMS : Elements' table (N1I,N2I,SI,MI,TI)                  *
 *          NE : number of elements                                     *
-*          MATES : Materials' table (RI,EI,DI)                         *
+*          MATES : Materials' table (RI,EI,NU,DI)                      *
 *          NM : number of materials                                    *
-*          SECTS : Sections' table (SI,IZI,IOI)                        *
+*          SECTS : Sections' table (SI,IZI,KY)                         *
 *          NS : number of sections                                     *
-************************************************************************   
+************************************************************************ 
+
+************************************************************************
+*     Update for Timoshenko's theory                                   *
+* 04/2021 by Tanguy BEVANCON                                           *
+*tanguy.bevancon@supmeca.fr                                            *
+************************************************************************
+  
       SUBROUTINE READDATAFILE(FILENAME,NMAX,EMAX,MMAX,SMAX,CAT,NODES,NN,
      1                        ELEMS,NE,MATES,NM,SECTS,NS)
       IMPLICIT NONE
@@ -102,6 +111,8 @@
 * Local variables                                                      *
       CHARACTER(9) CODE
       INTEGER I,J,K
+*     update for timoshenko's method
+      LOGICAL TIMOSHENKO
       
 * Opening the datafile and reading the first line                      *
       OPEN(10,FILE=FILENAME)
@@ -114,30 +125,58 @@
       DO I=1,NN
           READ(10,*) K,NODES(K,1),NODES(K,2)
       ENDDO
-
+      
 * Seeking and reading NE elements                                      *
       DO WHILE(CODE.NE.'ELEMENTS')
           READ(10,*) CODE,NE
       END DO
+      
+      TIMOSHENKO = .FALSE.
       DO I=1,NE
           READ(10,*) K,(ELEMS(K,J),J=1,5)
+*         Check if Timoshenko's theory is used  :  04/2021             *
+          IF (ELEMS(K,5).EQ.3) THEN
+                TIMOSHENKO = .TRUE.
+          ENDIF
       ENDDO
       
+*     Modification for the use of Timoshenko  :  04/2021               *
+
+      IF (TIMOSHENKO.EQV..TRUE.) THEN
 * Seeking and reading materials.                                       *                     
-      DO WHILE(CODE.NE.'MATERIALS')
-          READ(10,*) CODE,NM
-      END DO
-      DO I=1,NM
-          READ(10,*) K,(MATES(K,J),J=1,3)
-      ENDDO
-      
+          DO WHILE(CODE.NE.'MATERIALS')
+              READ(10,*) CODE,NM
+          END DO
+          DO I=1,NM
+              READ(10,*) K,(MATES(K,J),J=1,4)
+          ENDDO
+          
 * Seeking and reading sections.                                        *
-      DO WHILE(CODE.NE.'SECTIONS')
-          READ(10,*) CODE,NS
-      END DO
-      DO I=1,NS
-          READ(10,*) K,(SECTS(K,J),J=1,2)
-      ENDDO
+          DO WHILE(CODE.NE.'SECTIONS')
+              READ(10,*) CODE,NS
+          END DO
+          DO I=1,NS
+              READ(10,*) K,(SECTS(K,J),J=1,3)
+          ENDDO
+      ELSE
+*       Use of Bernoulli or Rayleigh                                   *      
+
+* Seeking and reading materials.                                       *                     
+          DO WHILE(CODE.NE.'MATERIALS')
+              READ(10,*) CODE,NM
+          END DO
+          DO I=1,NM
+              READ(10,*) K,(MATES(K,J),J=1,3)
+          ENDDO
+          
+* Seeking and reading sections.                                        *
+          DO WHILE(CODE.NE.'SECTIONS')
+              READ(10,*) CODE,NS
+          END DO
+          DO I=1,NS
+              READ(10,*) K,(SECTS(K,J),J=1,2)
+          ENDDO
+      ENDIF
 
       CLOSE(10)
 

@@ -49,13 +49,21 @@
 *                                                                      *      
 *     Return value :                                                   *
 *            unused logical error flag                                 *
-************************************************************************      
-      FUNCTION PLANARBEAM(W,S,IZ,L,RHO,E,TE,KW)
+*                                                                      *
+************************************************************************
+
+************************************************************************
+*     Update for Timoshenko's theory                                   *
+* 04/2021 by Tanguy BEVANCON                                           *
+*tanguy.bevancon@supmeca.fr                                            *
+************************************************************************
+      
+      FUNCTION PLANARBEAM(W,S,IZ,L,RHO,NU,KY,E,TE,KW)
       IMPLICIT NONE
       LOGICAL PLANARBEAM
 
 *     Traction and XY-Bending Dynamic Stiffness Functions              *
-      LOGICAL TRACTION, XYBENDING,XYRAYLEIGHBENDING
+      LOGICAL TRACTION, XYBENDING,XYRAYLEIGHBENDING,XYTIMOSHENKOBENDING
       
 *     Circular frequency                                               *
       DOUBLE PRECISION W
@@ -64,11 +72,14 @@
       DOUBLE PRECISION S,IZ,L
       
 *     Material properties of the beam                                  *
-      DOUBLE PRECISION RHO
+      DOUBLE PRECISION RHO,NU
       COMPLEX*16 E
 
 *     Bending theory                                                   *
       INTEGER TE
+      
+*     Timoshenko's theory   :   04/2021                                *
+      DOUBLE PRECISION KY
       
 *     Dynamic Stiffness Matrix                                         *
       COMPLEX*16 KW(6,6)
@@ -94,8 +105,11 @@
       RET=TRACTION(W,S,L,RHO,E,KT)
       IF (TE.EQ.1) THEN
           RET=XYBENDING(W,S,IZ,L,RHO,E,KB)
-      ELSE
+      ELSEIF (TE.EQ.2) THEN
           RET=XYRAYLEIGHBENDING(W,S,IZ,L,RHO,E,KB)
+* Add of the Timoshenko's method : 04/2021                             *
+      ELSEIF (TE.EQ.3) THEN
+          RET=XYTIMOSHENKOBENDING(W,S,IZ,L,RHO,E,NU,KY,KB)
       ENDIF
       
 *     Traction Components                                              * 
