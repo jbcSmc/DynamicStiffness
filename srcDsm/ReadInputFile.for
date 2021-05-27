@@ -126,12 +126,12 @@
 * Local variables                                                      *
       CHARACTER(80) LIGNE, MOT
       INTEGER INDEX1,INDEX2,INDEX3,INDEXSECT
-      CHARACTER(20) TAB(10,4),MATSECT(10,1)
+      CHARACTER(20) TAB(10,5),MATSECT(10,1)
       INTEGER I,J,K,X
       CHARACTER L,M
       CHARACTER(20) TESTSET
       INTEGER METHOD
-      DOUBLE PRECISION L1,L2,S1,IZ,KY
+      DOUBLE PRECISION PI,L1,L2,S1,IZ,KY
       DOUBLE PRECISION DENSITY1,E1,NU1
       INTEGER COUNTSECT,COUNTMAT
       
@@ -139,10 +139,11 @@
       
       CHARACTER*80 FILENAME
       
-      
+* For the moment, we consider only 2D frame                            *      
       CAT = '2DFRAME'
       
-*We read in a first step the file in order to count the number of nodes*
+*   We read in a first step the file in order to count the number of   *
+*   nodes, elements, sections, materials and other parameters.         *
       
 * Opening the datafile and reading until we reach the nodes            *
       OPEN(80,FILE=FILENAME)
@@ -154,7 +155,8 @@
           I=I+1
       ENDDO
       
-* Counting the number of nodes and stacking the value                  *
+*   Counting the number of nodes and stacking the value while also     *
+*   reading the type of method used                                    *
 
       K=0
       DO WHILE(LIGNE.NE.'*Element')
@@ -179,20 +181,35 @@
       NE=K-1
       
 *   Counting the number of sections and stacking its parameters        *
+*   (area, quadratic moment and Timoshenko's section reduction)        *
       X=1
       COUNTSECT=0
       
       DO WHILE (LIGNE.NE.'*End Instance')
           READ(80,"(a)") LIGNE
-          INDEX1 = index( LIGNE , "Section:" )
+          INDEX1 = INDEX( LIGNE , "Section:" )
           IF (INDEX1.NE.0) THEN
-              READ(80,*) TAB(X,1),TAB(X,2),TAB(X,3),TAB(X,4)
+              READ(80,*) TAB(X,1),TAB(X,2),TAB(X,3),TAB(X,4),M,TAB(X,5)
               TAB(X,4) = TAB(X,4)(10:LEN_TRIM(TAB(X,4)))
-              READ(80,*) L1,L2
-              S1=L1*L2
-              IZ=(L1**3*L2)/12
-              SECTS(X,1)=S1
-              SECTS(X,2)=IZ
+              IF (M.EQ.'section=GENERAL')
+                    READ(80,*) S1,IZ
+                    SECTS(X,1)=S1
+                    SECTS(X,2)=IZ
+              ELSEIF (TAB(X,5).EQ.'section=RECT') THEN
+                    READ(80,*) L1,L2
+                    S1=L1*L2
+                    IZ=(L1**3*L2)/12
+                    SECTS(X,1)=S1
+                    SECTS(X,2)=IZ
+              ELSEIF (TAB(X,5).EQ.'section=CIRC') THEN
+                    READ(80,*) L1
+*                   Defining Pi                                        *
+                    PI = 4.D0*DATAN(1.D0)
+                    S1 = PI*L1**2
+                    IZ = (PI*(2*L1)**4)/64
+                    SECTS(X,1)=S1
+                    SECTS(X,2)=IZ
+              ENDIF
               X=X+1
               COUNTSECT=COUNTSECT+1
           ENDIF
@@ -213,16 +230,12 @@
       
       DO WHILE(LIGNE.NE.'** STEP: Step-1')
           READ(80,"(a)") LIGNE
-          INDEX2 = index( LIGNE , "*Material" )
+          INDEX2 = INDEX( LIGNE , "*Material" )
           IF (INDEX2.NE.0) THEN
               MATSECT(COUNTMAT+1,1) = LIGNE(17:LEN_TRIM(LIGNE))
               COUNTMAT=COUNTMAT+1
           ENDIF
       ENDDO
-      
-      
-      
-      
       
       
       
@@ -259,31 +272,36 @@
 * Build the column which corresponds to the sections                   *
       K = 1
       DO WHILE(K.LE.COUNTSECT)
-          READ(80,*) LIGNE,TESTSET
-          IF (TESTSET.EQ.TAB(K,3)) THEN
-              READ(80,"(a)") LIGNE
-              J=2
-              DO WHILE (J.LE.LEN_TRIM(LIGNE))
-                  M = LIGNE(J:J)
-                  READ(M,'(i3)') INDEXSECT
-                  ELEMS(INDEXSECT,4)=K
-                  J=J+3
-              ENDDO
-              K=K+1
-          ENDIF
+            READ(80,*) LIGNE,TESTSET
+            DO I=1, COUNTSECT
+                IF (TESTSET.EQ.TAB(I,3)) THEN
+*   We don't know how many elements are involved so we read the entire *
+*   ligne                                                              *
+                      READ(80,"(a)") LIGNE
+*   If a section exists, there is minimum a character of length=2      *
+                      J=2
+                      DO WHILE (J.LE.LEN_TRIM(LIGNE))
+                            M = LIGNE(J:J)
+                            READ(M,'(i3)') INDEXSECT
+                            ELEMS(INDEXSECT,4)=I
+*   If there is more than one element per section, the file add a space*
+*   , a comma and the value of the element (so 3 more length)          *
+                            J=J+3
+                      ENDDO
+                      K=K+1
+                ENDIF
+            ENDDO
       ENDDO
       
 * Build the column which corresponds to the materials in elements      *
+
       DO K=1, NE
-          IF (COUNTMAT.EQ.1) THEN
-              ELEMS(K,3)=1
-          ELSE
-              DO J=1, COUNTMAT
-                  IF (TAB(K,4).EQ.MATSECT(J,1)) THEN
+            I = ELEMS(K,4)
+            DO J=1, COUNTMAT
+                  IF (TAB(I,4).EQ.MATSECT(J,1)) THEN
                       ELEMS(K,3)=J
                   ENDIF
-              ENDDO
-          ENDIF
+            ENDDO
       ENDDO
       
 * Seeking and reading NM Materials                                     *
@@ -291,7 +309,7 @@
       
       DO WHILE (I.NE.COUNTMAT)
           READ(80,"(a)") LIGNE
-          INDEX3 = index( LIGNE , "*Material" )
+          INDEX3 = INDEX( LIGNE , "*Material" )
           IF (INDEX3.NE.0) THEN
               READ(80,*)
               READ(80,*) DENSITY1

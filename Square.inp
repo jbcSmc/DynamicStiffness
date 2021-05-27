@@ -97,25 +97,25 @@
 *Elset, elset=Set-18, generate
  1,  4,  1
 ** Section: SmallSectionSteel  Profile: Profile-2
-*Beam Section, elset=Set-14, material=Steel, temperature=GRADIENTS, section=RECT
+*Beam Section, elset=Set-14, material=Aluminium, temperature=GRADIENTS, section=RECT
 0.05, 0.04
 0.,0.,-1.
 *Transverse Shear
 0.83, 0.83, 
 ** Section: LargeSectionSteel  Profile: Profile-1
-*Beam Section, elset=Set-15, material=Steel, temperature=GRADIENTS, section=RECT
+*Beam Section, elset=Set-15, material=Aluminium, temperature=GRADIENTS, section=RECT
 0.05, 0.05
 0.,0.,-1.
 *Transverse Shear
 0.83, 0.83, 
 ** Section: LargeSectionAlu  Profile: Profile-1
-*Beam Section, elset=Set-16, material=Aluminium, temperature=GRADIENTS, section=RECT
+*Beam Section, elset=Set-16, material=Steel, temperature=GRADIENTS, section=RECT
 0.05, 0.05
 0.,0.,-1.
 *Transverse Shear
 0.83, 0.83, 
 ** Section: SmallSectionAlu  Profile: Profile-2
-*Beam Section, elset=Set-17, material=Aluminium, temperature=GRADIENTS, section=RECT
+*Beam Section, elset=Set-17, material=Steel, temperature=GRADIENTS, section=RECT
 0.05, 0.04
 0.,0.,-1.
 *Transverse Shear
