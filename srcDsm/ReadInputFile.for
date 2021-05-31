@@ -127,7 +127,7 @@
       CHARACTER(80) LIGNE, MOT
       INTEGER INDEX1,INDEX2,INDEX3,INDEXSECT
       CHARACTER(20) TAB(10,5),MATSECT(10,1)
-      INTEGER I,J,K,X
+      INTEGER I,J,K,N,O,X
       CHARACTER L,M
       CHARACTER(20) TESTSET
       INTEGER METHOD
@@ -191,7 +191,7 @@
           IF (INDEX1.NE.0) THEN
               READ(80,*) TAB(X,1),TAB(X,2),TAB(X,3),TAB(X,4),M,TAB(X,5)
               TAB(X,4) = TAB(X,4)(10:LEN_TRIM(TAB(X,4)))
-              IF (M.EQ.'section=GENERAL')
+              IF (M.EQ.'section=GENERAL') THEN
                     READ(80,*) S1,IZ
                     SECTS(X,1)=S1
                     SECTS(X,2)=IZ
@@ -275,18 +275,33 @@
             READ(80,*) LIGNE,TESTSET
             DO I=1, COUNTSECT
                 IF (TESTSET.EQ.TAB(I,3)) THEN
-*   We don't know how many elements are involved so we read the entire *
-*   ligne                                                              *
                       READ(80,"(a)") LIGNE
-*   If a section exists, there is minimum a character of length=2      *
-                      J=2
-                      DO WHILE (J.LE.LEN_TRIM(LIGNE))
-                            M = LIGNE(J:J)
-                            READ(M,'(i3)') INDEXSECT
-                            ELEMS(INDEXSECT,4)=I
-*   If there is more than one element per section, the file add a space*
-*   , a comma and the value of the element (so 3 more length)          *
-                            J=J+3
+*  For this part, because we don't know yet the lentgh of the line     *
+*  which contains the elements, we will divide the ligne each time we  *
+*  came across a coma.                                                 *
+*  To run the good elements, we create two loops, one for the extreme  *
+*  left value and another for the right one                            *
+                      N=1
+                      X=1
+                      O=LEN_TRIM(LIGNE)
+*   We do the action until we reach the end of the line                *                      
+                      DO WHILE(O-X.GE.0)
+*                    We detect if there is a coma at the exact location*
+                            J=INDEX(LIGNE(X:X),',')
+                            IF (J.EQ.0) THEN
+*                           In the case we are at the end of the line  *
+                                    IF (X.EQ.O) THEN
+                                          READ(LIGNE(N:X),'(i3)')
+     1                                    INDEXSECT
+                                          ELEMS(INDEXSECT,4)=I
+                                    ENDIF
+                                    X=X+1
+                            ELSE
+                                    READ(LIGNE(N:X-1),'(i3)') INDEXSECT
+                                    ELEMS(INDEXSECT,4)=I
+                                    X=X+1
+                                    N=X
+                            ENDIF
                       ENDDO
                       K=K+1
                 ENDIF
