@@ -285,7 +285,7 @@
                       X=1
                       O=LEN_TRIM(LIGNE)
 *   We do the action until we reach the end of the line                *                      
-                      DO WHILE(O-X.GE.0)
+                      DO WHILE(X.LE.O+1)
 *                    We detect if there is a coma at the exact location*
                             J=INDEX(LIGNE(X:X),',')
                             IF (J.EQ.0) THEN
@@ -301,6 +301,12 @@
                                     ELEMS(INDEXSECT,4)=I
                                     X=X+1
                                     N=X
+                            ENDIF
+                            IF (X.EQ.64) THEN 
+                                READ(80,"(a)") LIGNE
+                                        N=1
+                                        X=1
+                                        O=LEN_TRIM(LIGNE)
                             ENDIF
                       ENDDO
                       K=K+1
