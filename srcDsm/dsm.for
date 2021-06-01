@@ -102,6 +102,7 @@
      1                  ELEMS,NE,MATES,NM,SECTS,NS)
           CALL WRITEDATAFILE(FILENAME,NMAX,EMAX,MMAX,SMAX,CAT,NODES,NN,
      1                  ELEMS,NE,MATES,NM,SECTS,NS)
+      WRITE(*,*) 'File ', TRIM(FILENAME), ' created' 
       ENDIF
       
 *      

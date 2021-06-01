@@ -255,6 +255,7 @@ module handlers
 		  &val%pStruct%cat,val%pStruct%nodes,val%pStruct%nn,&
 		  &val%pStruct%elems,val%pStruct%ne,val%pStruct%mates,&
 		  &val%pStruct%nm,val%pStruct%sects,val%pStruct%ns)
+		  print *, 'File ', trim(filename), ' created'
 	   endif
     else
       print*,"Data file is not selected"

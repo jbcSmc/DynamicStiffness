@@ -139,7 +139,7 @@
       
       CHARACTER*80 FILENAME
       
-* For the moment, we consider only 2D frame                            *      
+* For the moment, we consider only 2D frame                            *
       CAT = '2DFRAME'
       
 *   We read in a first step the file in order to count the number of   *
@@ -189,8 +189,13 @@
           READ(80,"(a)") LIGNE
           INDEX1 = INDEX( LIGNE , "Section:" )
           IF (INDEX1.NE.0) THEN
+*   The line countain several informations, we only need the third, the*
+*   fourth and the sixth one which corresponds respectively to the     *
+*   set selected for the section, the material and the type of section.*
+*   We still have to read the other in order to have the ones we want  *
               READ(80,*) TAB(X,1),TAB(X,2),TAB(X,3),TAB(X,4),M,TAB(X,5)
               TAB(X,4) = TAB(X,4)(10:LEN_TRIM(TAB(X,4)))
+*   We calculate the area and the quadratic moment                     *
               IF (M.EQ.'section=GENERAL') THEN
                     READ(80,*) S1,IZ
                     SECTS(X,1)=S1
@@ -214,6 +219,7 @@
               COUNTSECT=COUNTSECT+1
           ENDIF
           
+*   We read the Timoshenko's ratio only if it's needed                 *
           IF (METHOD.EQ.3) THEN
               IF (LIGNE.EQ.'*Transverse Shear') THEN
                   READ(80,*) KY
@@ -302,7 +308,9 @@
                                     X=X+1
                                     N=X
                             ENDIF
-                            IF (X.EQ.64) THEN 
+*   The length of the line in the abaqus file is limited to 64 columns,*
+*   after that, the section are defined on the next line               *
+                            IF (X.EQ.64) THEN
                                 READ(80,"(a)") LIGNE
                                         N=1
                                         X=1
