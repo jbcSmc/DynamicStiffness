@@ -250,6 +250,11 @@ module handlers
 		  &val%pStruct%cat,val%pStruct%nodes,val%pStruct%nn,&
 		  &val%pStruct%elems,val%pStruct%ne,val%pStruct%mates,&
 		  &val%pStruct%nm,val%pStruct%sects,val%pStruct%ns)
+		  
+		  call writedatafile(filename,nmax,emax,mmax,smax,&
+		  &val%pStruct%cat,val%pStruct%nodes,val%pStruct%nn,&
+		  &val%pStruct%elems,val%pStruct%ne,val%pStruct%mates,&
+		  &val%pStruct%nm,val%pStruct%sects,val%pStruct%ns)
 	   endif
     else
       print*,"Data file is not selected"
