@@ -86,13 +86,25 @@
       WRITE(*,*) "This is free software, and you are welcome to redistri
      1bute it under certain conditions"
       PRINT*
-      WRITE(*,*) 'Data File ? (******.dat)'
+      WRITE(*,*) 'Data File ? (******.dat) or (******.inp)'
       READ(*,*) FILENAME
 
 *     The name of the data file is required                            *      
       WRITE(*,*) 'Data reading ...'
-      CALL READDATAFILE(FILENAME,NMAX,EMAX,MMAX,SMAX,CAT,NODES,NN,ELEMS,
-     1                  NE,MATES,NM,SECTS,NS)
+      
+      IF (FILENAME(LEN_TRIM(FILENAME)-2:LEN_TRIM(FILENAME)).EQ.'dat')
+     1 THEN
+          CALL READDATAFILE(FILENAME,NMAX,EMAX,MMAX,SMAX,CAT,NODES,NN,
+     1                  ELEMS,NE,MATES,NM,SECTS,NS)
+      ELSEIF (FILENAME(LEN_TRIM(FILENAME)-2:LEN_TRIM(FILENAME)).
+     1 EQ.'inp') THEN
+          CALL READINPUTFILE(FILENAME,NMAX,EMAX,MMAX,SMAX,CAT,NODES,NN,
+     1                  ELEMS,NE,MATES,NM,SECTS,NS)
+          CALL WRITEDATAFILE(FILENAME,NMAX,EMAX,MMAX,SMAX,CAT,NODES,NN,
+     1                  ELEMS,NE,MATES,NM,SECTS,NS)
+      WRITE(*,*) 'File ', TRIM(FILENAME), ' created' 
+      ENDIF
+      
 *      
 *     The characteristics of the structure are displayed               *
       PRINT*

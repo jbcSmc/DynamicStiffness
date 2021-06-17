@@ -4,6 +4,8 @@ LDFLAGS=-L./lib -llapack -lm
 GTK_VERSION=`pkg-config --cflags --libs gtk+-2.0`
 
 _SRC=ReadDataFile.for\
+	ReadInputFile.for\
+	WriteDataFile.for\
     DynamicStiffness2D.for\
     GlobalStraightPlanarBeam.for\
     StraightPlanarBeam.for\

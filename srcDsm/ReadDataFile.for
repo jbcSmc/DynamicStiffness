@@ -62,7 +62,7 @@
 *     DI : Damping (loss angle) of material I                          *
 *     NU : Poisson's Ratio                                             *
 *     NS : Number of sections                                          *
-*     SI : Area o section I                                            *
+*     SI : Area of section I                                           *
 *     IZI : Quadratic moment of inertia of section I                   *
 *     KY : Timoshenko's Section Reduction                              *
 *                                                                      *

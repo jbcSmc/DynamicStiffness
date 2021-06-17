@@ -238,10 +238,25 @@ module handlers
        print *, "Data file is :"
        print *, TRIM(filename)
        print *, "Reading data file ..."
-       call readdatafile(filename,nmax,emax,mmax,smax,val%pStruct%cat,&
-      &val%pStruct%nodes,val%pStruct%nn,val%pStruct%elems,&
-      &val%pStruct%ne,val%pStruct%mates,val%pStruct%nm,&
-      &val%pStruct%sects,val%pStruct%ns)
+       if (filename(LEN_TRIM(filename)-2:LEN_TRIM(filename)).eq.'dat')&
+       &then
+		  call readdatafile(filename,nmax,emax,mmax,smax,&
+		  &val%pStruct%cat,val%pStruct%nodes,val%pStruct%nn,&
+		  &val%pStruct%elems,val%pStruct%ne,val%pStruct%mates,&
+		  &val%pStruct%nm,val%pStruct%sects,val%pStruct%ns)
+	   elseif (filename(LEN_TRIM(filename)-2:LEN_TRIM(filename)).eq.&
+	   'inp') then
+		  call readinputfile(filename,nmax,emax,mmax,smax,&
+		  &val%pStruct%cat,val%pStruct%nodes,val%pStruct%nn,&
+		  &val%pStruct%elems,val%pStruct%ne,val%pStruct%mates,&
+		  &val%pStruct%nm,val%pStruct%sects,val%pStruct%ns)
+		  
+		  call writedatafile(filename,nmax,emax,mmax,smax,&
+		  &val%pStruct%cat,val%pStruct%nodes,val%pStruct%nn,&
+		  &val%pStruct%elems,val%pStruct%ne,val%pStruct%mates,&
+		  &val%pStruct%nm,val%pStruct%sects,val%pStruct%ns)
+		  print *, 'File ', trim(filename), ' created'
+	   endif
     else
       print*,"Data file is not selected"
       readOk=0
