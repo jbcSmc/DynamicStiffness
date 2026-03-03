@@ -1,12 +1,40 @@
+"""
+main.py - DSM PyQt5 GUI for Dynamic Stiffness Method
+Version: 2.0
+Author: Jean-Baptiste CASIMIR - ISAE-Supméca
+License: GNU General Public License v3 (GPLv3)
+
+Copyright (C) 2026 Jean-Baptiste CASIMIR
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""
+
+# =====================================================
+# === Standard Library Imports
+# =====================================================
 import os
-os.environ["QT_OPENGL"] = "software"
-os.environ["LIBGL_ALWAYS_SOFTWARE"] = "1"
 import sys
 import numpy as np
 
+# Force software OpenGL rendering (improves compatibility on some systems)
+os.environ["QT_OPENGL"] = "software"
+os.environ["LIBGL_ALWAYS_SOFTWARE"] = "1"
 
+# =====================================================
+# === Qt and Visualization Libraries
+# =====================================================
 from PyQt5 import QtCore
-
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget,
     QFileDialog, QPushButton, QLabel, QCheckBox,
@@ -18,146 +46,241 @@ from PyQt5.QtWidgets import (
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
 
-import pyqtgraph as pg
-from pyqtgraph.Qt import QtWidgets
-
+# =====================================================
+# === Import C++ DSM Solver Module
+# =====================================================
 this_dir = os.path.dirname(os.path.abspath(__file__))
 build_dir = os.path.abspath(os.path.join(this_dir, "..", "build"))
 sys.path.insert(0, build_dir)
-
 import dsm_cpp
 
+# =====================================================
+# === Matplotlib Canvas Classes
+# =====================================================
 class MplCanvas3D(FigureCanvasQTAgg):
+    """
+    3D Matplotlib canvas for structural visualization.
+    """
     def __init__(self):
         self.fig = Figure()
         self.ax = self.fig.add_subplot(111, projection='3d')
         super().__init__(self.fig)
 
+class MplCanvas(FigureCanvasQTAgg):
+    """
+    2D Matplotlib canvas for structural plots and frequency response.
+    """
+    def __init__(self, parent=None):
+        self.fig = Figure(figsize=(10, 10))
+        self.ax = self.fig.add_subplot(111)
+        super().__init__(self.fig)
+
+        self.setParent(parent)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        # Adjust margins for better readability
+        self.fig.subplots_adjust(left=0.1, right=0.99, bottom=0.1, top=0.9)
+        
+# =====================================================
+# === Geometry Readers
+# =====================================================
 def read_geometry(filename):
+    """
+    Read 2D frame geometry from file.
+
+    Returns
+    -------
+    nodes : dict
+        node_id -> (x, y)
+    elements : list
+        list of (element_id, node1, node2)
+    """
     nodes = {}
     elements = []
 
     with open(filename, 'r') as f:
         lines = f.readlines()
+
     i = 0
     while i < len(lines):
         line = lines[i].strip()
+
         if line.startswith("NODES"):
             n = int(line.split()[1])
-            for k in range(n):
+            for _ in range(n):
                 i += 1
                 idx, x, y = lines[i].split()
                 nodes[int(idx)] = (float(x), float(y))
 
         elif line.startswith("ELEMENTS"):
             n = int(line.split()[1])
-            for k in range(n):
+            for _ in range(n):
                 i += 1
                 parts = lines[i].split()
-                eid = int(parts[0])
-                n1 = int(parts[1])
-                n2 = int(parts[2])
-                elements.append((eid, n1, n2))
+                elements.append((int(parts[0]), int(parts[1]), int(parts[2])))
 
         i += 1
 
     return nodes, elements
-    
+
+
 def read_geometry3d(filename):
+    """
+    Read 3D frame geometry from file.
+
+    Returns
+    -------
+    nodes : dict
+        node_id -> (x, y, z)
+    elements : list
+        list of (element_id, node1, node2)
+    """
     nodes = {}
     elements = []
 
     with open(filename, 'r') as f:
         lines = f.readlines()
+
     i = 0
     while i < len(lines):
         line = lines[i].strip()
+
         if line.startswith("NODES"):
             n = int(line.split()[1])
-            for k in range(n):
+            for _ in range(n):
                 i += 1
                 idx, x, y, z = lines[i].split()
                 nodes[int(idx)] = (float(x), float(y), float(z))
 
         elif line.startswith("ELEMENTS"):
             n = int(line.split()[1])
-            for k in range(n):
+            for _ in range(n):
                 i += 1
                 parts = lines[i].split()
-                eid = int(parts[0])
-                n1 = int(parts[1])
-                n2 = int(parts[2])
-                elements.append((eid, n1, n2))
+                elements.append((int(parts[0]), int(parts[1]), int(parts[2])))
 
         i += 1
 
     return nodes, elements
 
-def dsm_solve(self, datafile, exc_node, exc_dof, obs_node, obs_dof, fmin, fmax, npts, fdef):
+# =====================================================
+# === DSM Solver Interface
+# =====================================================
+def dsm_solve(datafile, exc_node, exc_dof,
+              obs_node, obs_dof,
+              fmin, fmax, npts, fdef):
+    """
+    Execute DSM computation via the C++ backend.
 
-    U = dsm_cpp.run_dsm(self.datafile, exc_node, exc_dof, obs_node, obs_dof, fmin, fmax, npts, fdef)
-    
+    Returns
+    -------
+    f : ndarray
+        Frequency vector
+    U : ndarray
+        Complex displacement response
+    """
+    U = dsm_cpp.run_dsm(
+        datafile,
+        exc_node, exc_dof,
+        obs_node, obs_dof,
+        fmin, fmax, npts, fdef
+    )
+
     f = np.linspace(fmin, fmax, len(U))
     return f, np.array(U)
 
 
-class MplCanvas(FigureCanvasQTAgg):
-    def __init__(self, parent=None):
-        self.fig = Figure(figsize=(10,10))
-        self.ax = self.fig.add_subplot(111)
 
-        super().__init__(self.fig)
-
-        self.setParent(parent)
-        self.setSizePolicy(
-            QSizePolicy.Expanding,
-            QSizePolicy.Expanding
-        )
-
-        self.fig.subplots_adjust(left=0.1, right=0.99, bottom=0.1, top=0.9)
-
+# =====================================================
+# === Main GUI Window
+# =====================================================
 class DSMWindow(QMainWindow):
+    """
+    Main GUI for the Dynamic Stiffness Method application.
+
+    Responsibilities:
+    - Load structural model files
+    - Visualize 2D and 3D structures
+    - Configure excitation/observation DOFs
+    - Execute DSM solver
+    - Display frequency response
+    """
+
     def __init__(self):
         super().__init__()
+
         self.setWindowTitle("DSM – Dynamic Stiffness Method")
 
+        # Currently loaded data file
         self.datafile = None
 
+        # Storage for geometry
+        self.nodes = {}
+        self.elements = []
+
+        # Selected excitation and observation
+        self.selected_exc = None
+        self.selected_obs = None
+
+        # ================= UI Controls =================
+        # Buttons (open file, view, compute, export view)
         self.btn_open = QPushButton("Open data file")
-        self.lbl_file = QLabel("No file selected")
         self.btn_view = QPushButton("View")
-        self.chk_3d = QCheckBox("3D Structure")
-        self.chk_3d.setChecked(False)
-        self.chk_nd = QCheckBox("Nodes")
-        self.chk_nd.setChecked(False)
-        self.chk_el = QCheckBox("Elements")
-        self.chk_el.setChecked(False)
-        
+        self.btn_run = QPushButton("Compute")
         self.btn_export = QPushButton("Export view")
-        
+
+        self.lbl_file = QLabel("No file selected")
+
+        # Check boxes (3D structure, Nodes, Elemnts)
+        self.chk_3d = QCheckBox("3D Structure")
+        self.chk_nd = QCheckBox("Nodes")
+        self.chk_el = QCheckBox("Elements")
         self.chk_3d.stateChanged.connect(self.on_toggle_view)
 
+        # Combo boxes for input/output selection
         self.cmb_exc_node = QComboBox()
         self.cmb_exc_dof = QComboBox()
         self.cmb_obs_node = QComboBox()
         self.cmb_obs_dof = QComboBox()
 
+        # Frequency controls
+        self.fmin_box = QDoubleSpinBox()
+        self.fmax_box = QDoubleSpinBox()
+        self.npts_box = QSpinBox()
+        self.fdef_box = QDoubleSpinBox()
+        self._configure_frequency_controls()
 
-
-        self.btn_run = QPushButton("Compute")
-        
-        self.canvas = MplCanvas()
+        # ================= Canvases =================
         self.canvas2d = MplCanvas()
         self.canvas3d = MplCanvas3D()
+        self.canvas = MplCanvas()  # response plot
         self.canvas2d.mpl_connect('button_press_event', self.on_click)
-        
+
+        # Stack view: 2D / 3D / Frequency response
         self.view_stack = QStackedWidget()
         self.view_stack.addWidget(self.canvas2d)
         self.view_stack.addWidget(self.canvas3d)
         self.view_stack.addWidget(self.canvas)
 
+        self._build_layout()
+        self._connect_signals()
+
+    # =====================================================
+    # === Internal UI Configuration
+    # =====================================================
+    def _configure_frequency_controls(self):
+        """Configure frequency input widgets."""
+        self.fmin_box.setRange(0.0, 1e9)
+        self.fmax_box.setRange(0.0, 1e9)
+        self.fdef_box.setRange(0.0, 1e9)
+        self.npts_box.setRange(2, 1000)
+        
+        self.fmax_box.setValue(1000.0)
+        self.npts_box.setValue(200)
+
+    def _build_layout(self):
+        """Create main window layout."""
         top = QHBoxLayout()
         top.addWidget(self.btn_open)
         top.addWidget(self.lbl_file)
@@ -175,65 +298,34 @@ class DSMWindow(QMainWindow):
         controls.addWidget(self.cmb_obs_node)
         controls.addWidget(self.cmb_obs_dof)
         controls.addWidget(self.btn_run)
-        
+
         freq_layout = QHBoxLayout()
-        
-        label_fmin = QLabel("f min [Hz]")
-        self.fmin_box = QDoubleSpinBox()
-        self.fmin_box.setRange(0.0,1e9)
-        self.fmin_box.setDecimals(3)
-        self.fmin_box.setValue(0.0)
-        
-        label_fmax = QLabel("f max [Hz]")
-        self.fmax_box = QDoubleSpinBox()
-        self.fmax_box.setRange(0.0,1e9)
-        self.fmax_box.setDecimals(3)
-        self.fmax_box.setValue(1000.0)
-        
-        label_npts = QLabel("Nombre de points de calcul")
-        self.npts_box = QSpinBox()
-        self.npts_box.setRange(2,1000)
-        self.npts_box.setValue(200)
-        self.npts_box.setSingleStep(10)
-        
-        
-        label_fdef = QLabel("Displacements at frequency (Hz)")
-        self.fdef_box = QDoubleSpinBox()
-        self.fdef_box.setRange(0.0,1e9)
-        self.fdef_box.setDecimals(3)
-        self.fdef_box.setValue(0.0)
-        
-        
-         
-        freq_layout.addWidget(label_fmin)
+        freq_layout.addWidget(QLabel("f min [Hz]"))
         freq_layout.addWidget(self.fmin_box)
-        freq_layout.addWidget(label_fmax)
+        freq_layout.addWidget(QLabel("f max [Hz]"))
         freq_layout.addWidget(self.fmax_box)
-        freq_layout.addWidget(label_npts)
+        freq_layout.addWidget(QLabel("Number of points"))
         freq_layout.addWidget(self.npts_box)
-        freq_layout.addWidget(label_fdef)
+        freq_layout.addWidget(QLabel("Deformation frequency [Hz]"))
         freq_layout.addWidget(self.fdef_box)
-        
 
         layout = QVBoxLayout()
         layout.addLayout(top)
         layout.addLayout(controls)
         layout.addLayout(freq_layout)
-        layout.addWidget(self.view_stack, stretch=1)       
+        layout.addWidget(self.view_stack)
 
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
 
+    def _connect_signals(self):
+        """Connect buttons to callbacks."""
         self.btn_open.clicked.connect(self.open_file)
         self.btn_view.clicked.connect(self.view)
         self.btn_run.clicked.connect(self.exec)
         self.btn_export.clicked.connect(self.export_view_3d)
-
-        self.selected_exc = None   # (node_id, dof)
-        self.selected_obs = None
-        self.nodes = {}
-        self.elements = []
+ 
         
     def on_toggle_view(self, state):
         if state == QtCore.Qt.Checked:
@@ -345,6 +437,15 @@ class DSMWindow(QMainWindow):
                 self.plot_structure(self.nodes, self.elements)
 		
     def exec(self):
+        """
+        Run the DSM computation using the selected parameters.
+
+        Steps:
+           1. Read excitation/observation DOFs
+           2. Validate frequency range
+           3. Call C++ DSM backend
+           4. Plot frequency response in dB
+        """
         if not self.datafile:
             return
 
@@ -373,8 +474,9 @@ class DSMWindow(QMainWindow):
             "Invalid displacement frequency",
             "Displacement frequencty must be between f min and f max"
             )
-            return			
-        f, U = dsm_solve(self, self.datafile, node_exc, dof_exc, node_obs, dof_obs, fmin, fmax, npts, fdef)
+            return		
+            	
+        f, U = dsm_solve(self.datafile, node_exc, dof_exc, node_obs, dof_obs, fmin, fmax, npts, fdef)
         
         self.view_stack.setCurrentIndex(2)
         self.canvas.ax.clear()
@@ -389,6 +491,23 @@ class DSMWindow(QMainWindow):
        
 
     def plot_structure(self, nodes, elements):
+        """
+        Plot a 2D frame structure.
+
+        Parameters
+        ----------
+        nodes : dict
+            Dictionary mapping node_id -> (x, y)
+        elements : list
+            List of tuples (element_id, node1, node2)
+
+        Displays:
+            - Elements as black lines
+            - Local axis direction (red arrow)
+            - Node numbers
+            - Element numbers (optional)
+            - Excitation and observation markers
+        """
         ax = self.canvas2d.ax
         ax.clear()
 
@@ -545,7 +664,16 @@ class DSMWindow(QMainWindow):
                 return nid
         return None
 
+
     def on_click(self, event):
+        """
+        Handle mouse click on 2D canvas.
+
+        Left click:
+            Select excitation node
+            Shift + Left click:
+            Select observation node
+        """
         modifiers = QApplication.keyboardModifiers()
         if event.inaxes != self.canvas.ax:
             return
@@ -572,6 +700,9 @@ class DSMWindow(QMainWindow):
         if filename:
             self.canvas3d.fig.savefig(filename, dpi=300, bbox_inches="tight")
 
+# =====================================================
+# === Main entry point ===
+# =====================================================
 if __name__ == "__main__":
    import sys
    from PyQt5.QtWidgets import QApplication
