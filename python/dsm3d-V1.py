@@ -27,7 +27,6 @@ import os
 import sys
 import numpy as np
 
-# Force software OpenGL rendering (improves compatibility on some systems)
 os.environ["QT_OPENGL"] = "software"
 os.environ["LIBGL_ALWAYS_SOFTWARE"] = "1"
 
@@ -328,14 +327,46 @@ class DSMWindow(QMainWindow):
  
         
     def on_toggle_view(self, state):
+        """
+        Switch between 2D and 3D structure visualization.
+
+        This function is triggered when the '3D Structure' checkbox
+        changes state. The GUI uses a QStackedWidget (view_stack)
+        containing multiple canvases:
+
+        index 0 : 2D structure view
+        index 1 : 3D structure view
+        index 2 : frequency response plot
+
+        Parameters
+        ----------
+        state : int
+            Checkbox state returned by Qt (Checked / Unchecked).
+        """
+        
         if state == QtCore.Qt.Checked:
             self.view_stack.setCurrentIndex(1)
-#           self.plot_structure_3d(self.nodes, self.elements)
         else:
             self.view_stack.setCurrentIndex(0)
-#            self.plot_structure(self.nodes, self.elements)
+				
 				
     def select_dof(self, node_id, mode):
+        """
+        Select a degree of freedom (DOF) for excitation or observation.
+
+        When the user clicks on a node in the structure plot,
+        a dialog appears allowing the user to choose the DOF.
+
+        Parameters
+        ----------
+        node_id : int
+            ID of the selected node.
+        mode : str
+            Selection mode:
+                "exc" → excitation DOF
+                "obs" → observation DOF
+        """
+        
         items = ["U\u2093", "U\u1D67", "\u03B8\u2093"]
         dof, ok = QInputDialog.getItem(
             self,
@@ -375,6 +406,17 @@ class DSMWindow(QMainWindow):
         self.plot_structure(self.nodes, self.elements)
 
     def open_file(self):
+        """
+        Open a DSM input data file and load the structure geometry.
+
+        The file must start with a keyword indicating the problem type:
+            - '2DFRAME'
+            - '3DFRAME'
+
+        The geometry (nodes and elements) is then read and displayed
+        in the appropriate visualization canvas.
+        """
+        
         fname, _ = QFileDialog.getOpenFileName(
             self, "Open DSM data file", "", "Data files (*.dat *.txt)"
         )
@@ -429,12 +471,15 @@ class DSMWindow(QMainWindow):
             
     
     def view(self):
-            if self.chk_3d.isChecked():
-                self.view_stack.setCurrentIndex(1)
-                self.plot_structure_3d(self.nodes, self.elements)
-            else:
-                self.view_stack.setCurrentIndex(0)
-                self.plot_structure(self.nodes, self.elements)
+       """
+       Display the structure either in 2D or 3D depending on the checkbox state.
+       """
+       if self.chk_3d.isChecked():
+          self.view_stack.setCurrentIndex(1)
+          self.plot_structure_3d(self.nodes, self.elements)
+       else:
+          self.view_stack.setCurrentIndex(0)
+          self.plot_structure(self.nodes, self.elements)
 		
     def exec(self):
         """
@@ -582,14 +627,29 @@ class DSMWindow(QMainWindow):
 
 
     def plot_structure_3d(self, nodes, elements):
+        """
+        Plot a 2D frame structure.
+
+        Parameters
+        ----------
+        nodes : dict
+            Dictionary mapping node_id -> (x, y)
+        elements : list
+            List of tuples (element_id, node1, node2)
+
+        Displays:
+            - Elements as black lines
+            - Local axis direction (red arrow)
+            - Node numbers
+            - Element numbers (optional)
+            - Excitation and observation markers
+        """
+        
         print("NODES:", len(nodes))
         print("ELEMENTS:", len(elements))
         ax = self.canvas3d.ax
         ax.clear()
 
-        # =====================================================
-        # --- ÉLÉMENTS : une seule collection (CRUCIAL)
-        # =====================================================
         segments = []
         centers = []
 
@@ -613,10 +673,6 @@ class DSMWindow(QMainWindow):
             linewidths=2
         )
         ax.add_collection3d(line_collection)
-
-        # =====================================================
-        # --- NŒUDS : un seul scatter
-        # =====================================================
         
         coords = np.array(list(nodes.values()))
         ax.scatter(
@@ -627,9 +683,6 @@ class DSMWindow(QMainWindow):
             s=5
         )
 
-        # =====================================================
-        # --- TEXTES (OPTIONNELS ET COÛTEUX)
-        # =====================================================
         if self.chk_el.isChecked():
             for eid, x, y, z in centers:
                 ax.text(x, y, z, f"E{eid}", color='purple', fontsize=9)
@@ -638,18 +691,12 @@ class DSMWindow(QMainWindow):
             for nid, (x, y, z) in nodes.items():
                 ax.text(x, y, z, f"{nid}", color='blue', fontsize=9)
 
-        # =====================================================
-        # --- RÉGLAGES GLOBAUX (LÉGERS)
-        # =====================================================
         ax.set_xlabel("X")
         ax.set_ylabel("Y")
         ax.set_zlabel("Z")
         ax.set_title("Structure 3D")
 
-        # proportions correctes
-        #ax.set_box_aspect([1, 1, 1])
         ax.axis('square')
-        # IMPORTANT : éviter axis("equal") en 3D (lent)
         ax.grid(False)
 
         self.canvas3d.draw_idle()
@@ -659,6 +706,24 @@ class DSMWindow(QMainWindow):
 
     
     def find_closest_node(self, x, y, tol=0.05):
+        """
+        Find the node whose coordinates are closest to a given point.
+
+        Parameters
+        ----------
+        x, y : float
+            Coordinates of the point (typically a mouse click in the plot).
+
+        tol : float
+            Distance tolerance used to detect a node.
+
+        Returns
+        -------
+        nid : int or None
+            Identifier of the node if a node is found within the tolerance,
+            otherwise None.
+        """
+        
         for nid, (xn, yn) in self.nodes.items():
             if (x - xn)**2 + (y - yn)**2 < tol**2:
                 return nid

@@ -30,3 +30,22 @@
 *.exe
 *.out
 *.app
+
+# Data files
+*.dat
+*.txt
+
+# Python temporary files
+__pycache__/
+*.pic
+
+# build C++
+build/
+
+# Post-processing
+def.py
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+
