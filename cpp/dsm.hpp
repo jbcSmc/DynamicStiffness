@@ -5,6 +5,9 @@
 #include <string>
 #include <Eigen/Dense>
 
+using cdouble = std::complex<double>;
+using MatrixXc = Eigen::Matrix<cdouble, Eigen::Dynamic, Eigen::Dynamic>;
+using VectorXc = Eigen::Matrix<cdouble, Eigen::Dynamic, 1>;
 /// =====================
 /// Données de base
 /// =====================
@@ -69,7 +72,8 @@ struct Model {
 
 Model read_model(const std::string& filename);
 
-std::vector<std::complex<double>> run_dsm(const std::string& filename,
+// 05/03 std::vector<std::complex<double>> run_dsm(const std::string& filename,
+VectorXc run_dsm(const std::string& filename,
         int exc_node, int exc_dof,
         int obs_node, int obs_dof,
         double fmin, double fmax, int npts, double fdef);

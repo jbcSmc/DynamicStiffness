@@ -8,9 +8,7 @@
 #include <cmath>
 #include "dsm.hpp"
 
-using cdouble = std::complex<double>;
-using MatrixXc = Eigen::Matrix<cdouble, Eigen::Dynamic, Eigen::Dynamic>;
-using VectorXc = Eigen::Matrix<cdouble, Eigen::Dynamic, 1>;
+
 
 using namespace std;
 
@@ -554,10 +552,13 @@ VectorXc reconstruct_solution(const VectorXc& U_r,const std::vector<int>& free_d
 }
 
 
-std::vector<std::complex<double>> run_dsm(const std::string& filename, int exc_node, int exc_dof, int obs_node, int obs_dof,
-                                          double fmin, double fmax, int npts, double fdef){
-    
-    std::vector<std::complex<double>> U_py;
+//25/03 std::vector<std::complex<double>> run_dsm(const std::string& filename, int exc_node, int exc_dof, int obs_node, int obs_dof,
+//25/03                                          double fmin, double fmax, int npts, double fdef){
+
+VectorXc run_dsm(const std::string& filename, int exc_node, int exc_dof, int obs_node, int obs_dof,
+                                                     double fmin, double fmax, int npts, double fdef){
+											      
+
     bool def_ok = false;
     
     
@@ -574,23 +575,22 @@ std::vector<std::complex<double>> run_dsm(const std::string& filename, int exc_n
     cout << "frequence de la deformee" << fdef << endl;
     cout << "Nombre de ddl bloques : " << data.fdof.size() << endl;
    
-  
+//25/03    std::vector<std::complex<double>> U_py;
+//25/03 bis    Eigen::VectorXd U_amp(npts) ; 
+    VectorXc U_vec(npts);
+    
     MatrixXc K;  
     double df = (fmax - fmin)/(npts-1);
-    int nddlnode;
+    int nddlnode = (data.problem_type=="2DFRAME") ? 3 : 6;
     
-    
-    if(data.problem_type=="2DFRAME")
-       nddlnode = 3;
-    else if(data.problem_type=="3DFRAME")
-       nddlnode = 6;
     
     MatrixXc UDEF = MatrixXc::Zero(data.nodes.size(), 6);
     
     int ndof = nddlnode * data.nodes.size();
  
     Eigen::VectorXcd F = Eigen::VectorXcd::Zero(ndof);
-
+    
+    
     int g_exc = nddlnode * exc_node + exc_dof;
     
     F(g_exc) = std::complex<double>(1.0, 0.0);
@@ -598,7 +598,7 @@ std::vector<std::complex<double>> run_dsm(const std::string& filename, int exc_n
     cout << "effort" << endl;
     for(int i=0; i<F.size();i++)
        cout << F(i) << endl;
-    
+   
 
     int g_obs = nddlnode * obs_node + obs_dof;
 
@@ -627,10 +627,11 @@ std::vector<std::complex<double>> run_dsm(const std::string& filename, int exc_n
     
     ofstream out_def("displacements.dat");
     
-    U_py.reserve(npts);
+// 05/03    U_py.reserve(npts);
     
     int i=0;
     for (double f = fmin; f <= fmax; f += df,i++) {
+		
        cout << "f=" << f << endl;
        double omega = 2.0 * M_PI * f;
 
@@ -647,6 +648,7 @@ std::vector<std::complex<double>> run_dsm(const std::string& filename, int exc_n
        VectorXc U_r = K_r.fullPivLu().solve(F_r);
        VectorXc U   = reconstruct_solution(U_r, free_dofs, ndof);
        
+       
 //       if(i==1){
 //		   
 //		   std::cout << omega << std::endl;
@@ -657,10 +659,17 @@ std::vector<std::complex<double>> run_dsm(const std::string& filename, int exc_n
 //		       cout << free_dofs[j] << endl;
 //           std::cout << K_r.format(fmtMat) << std::endl;
 //       }
-       double amp = std::abs(U(g_obs));
+
+
+// 05/03        double amp = std::abs(U(g_obs));
+// 05/03 bis      U_amp(i) = std::abs(U(g_obs));   
+         U_vec(i) = U(g_obs);
+
 //       std::complex<double> response = U(g_obs);
-       out << f << " " << amp << "\n";
-       U_py.push_back(amp);
+// 05/03       out << f << " " << amp << "\n";
+// 05/03 bis   out << f << " " << U_amp(i) << "\n";
+         out << f << " " << U_vec(i) << "\n";
+//05/03        U_py.push_back(amp);
        
 //       if(data.problem_type=="2DFRAME")
 //          cout << K.block(3,3,3,3).format(fmtMat)<<endl;
@@ -682,8 +691,9 @@ std::vector<std::complex<double>> run_dsm(const std::string& filename, int exc_n
 //    std::cout << u << std::endl;
    out.close();
    
-   return U_py;
-
+// 05/03    return U_py;
+// 05/03 bis   return U_amp;
+   return U_vec;
 }
 
 
